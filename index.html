@@ -1,21 +1,119 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>secret page</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>lalalalaa i cant hear you</title>
+  <meta name="description" content="Plays an Opus file on loop and shows neon purple text." />
+  <style>
+    :root {
+      --purple: #b026ff; /* bright purple */
+      --bg: #000000;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--purple);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, sans-serif;
+    }
+    .wrap {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      margin: 0;
+      font-weight: 800;
+      font-size: clamp(2rem, 6vw + 1rem, 7rem);
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      /* neon glow */
+      text-shadow:
+        0 0 8px rgba(176, 38, 255, 0.9),
+        0 0 16px rgba(176, 38, 255, 0.8),
+        0 0 32px rgba(176, 38, 255, 0.6),
+        0 0 64px rgba(176, 38, 255, 0.4);
+      filter: drop-shadow(0 0 12px rgba(176, 38, 255, 0.6));
+    }
+
+    /* start overlay shown if autoplay is blocked */
+    #gate {
+      position: fixed;
+      inset: 0;
+      display: none; /* shown by JS if needed */
+      background: radial-gradient( circle at 50% 40%, rgba(176,38,255,0.06), transparent 60%) , var(--bg);
+      align-items: center;
+      justify-content: center;
+    }
+    #gate button {
+      font: inherit;
+      color: var(--bg);
+      background: var(--purple);
+      border: 0;
+      border-radius: 999px;
+      padding: 0.9rem 1.3rem;
+      cursor: pointer;
+      box-shadow: 0 0 24px rgba(176, 38, 255, 0.7);
+    }
+    #gate button:focus { outline: 2px solid #fff; outline-offset: 3px; }
+
+    /* hide native controls; audio is still in DOM for autoplay */
+    audio { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+  </style>
 </head>
 <body>
-    <h1>Onlyfans</h1>
-    <p>You thought I'd let you see my girl like that??? h- he- HELL NAWW man</p>
-    <button onclick="showResult()">Click Me!</button>
-    <p id="result"></p>
+  <div class="wrap" aria-live="polite">
+    <h1>lalalalaa i cant hear you</h1>
+  </div>
 
-    <script>
-        function showResult() {
-            const resultElement = document.getElementById("result");
-            resultElement.textContent = "haha you dumbass lmao";
+  <!-- Put your audio file next to this index.html and name it audio.opus -->
+  <!-- GitHub Pages serves .opus as audio/ogg; most browsers support Opus. -->
+  <audio id="player" preload="auto" loop playsinline>
+    <source src="audio.opus" type="audio/ogg; codecs=opus" />
+    <!-- optional backup (uncomment if you also add a .ogg copy) -->
+    <!-- <source src="audio.ogg" type="audio/ogg" /> -->
+  </audio>
+
+  <div id="gate" role="dialog" aria-modal="true" aria-label="audio permission">
+    <button id="startBtn" type="button">tap/click to play</button>
+  </div>
+
+  <script>
+    (async function () {
+      const player = document.getElementById('player');
+      const gate = document.getElementById('gate');
+      const startBtn = document.getElementById('startBtn');
+
+      // try to autoplay at load
+      try {
+        // Some browsers require muted first; then unmute.
+        player.muted = true;
+        await player.play();
+        player.muted = false;
+      } catch (err) {
+        // Autoplay likely blocked; show gate overlay.
+        gate.style.display = 'flex';
+      }
+
+      // if user clicks, start/resume playback
+      startBtn?.addEventListener('click', async () => {
+        try {
+          await player.play();
+          player.muted = false;
+          gate.remove();
+        } catch (err) {
+          // keep the button visible if it still fails
+          console.warn('Playback failed:', err);
         }
-    </script>
+      });
+
+      // keep looping seamlessly
+      player.addEventListener('ended', () => { player.currentTime = 0; player.play(); });
+    })();
+  </script>
 </body>
 </html>
